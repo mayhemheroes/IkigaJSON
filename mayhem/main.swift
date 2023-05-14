@@ -20,7 +20,7 @@ let encodable_types: [Codable.Type] = [
     String.self, UInt.self, UInt8.self, UInt16.self, UInt32.self, UInt64.self, Float.self, Bool.self
 ]
 
-let decodable_types = encodable_types + [[String.self], [Int.self], [UInt.self], [Float.self], [Bool.self]] as [Any]
+let decodable_types = encodable_types + [[String.self], [Int.self], [UInt.self], [Float.self], [Bool.self], [String: String].self] as [Any]
 
 func test_fuzz_type<T: Codable & Equatable>(_ ft: FuzzType<T>) throws {
     let encoded = try encoder.encode(ft)
