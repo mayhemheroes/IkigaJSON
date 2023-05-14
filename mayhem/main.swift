@@ -77,6 +77,9 @@ public func test(_ start: UnsafeRawPointer, _ count: Int) -> CInt {
         return -1
     }
     catch let error {
+        if String(describing: error).contains("TypeConversion") {
+            return -1
+        }
         print(error)
         print(type(of: error))
         exit(EXIT_FAILURE)
