@@ -17,28 +17,50 @@ struct FuzzType<Value: Codable & Equatable>: Codable, Equatable {
 }
 
 let encodable_types: [Any.Type] = [
-    String.self, Int.self, Int8.self, Int16.self, Int32.self, Int64.self,
-    UInt.self, UInt8.self, UInt16.self, UInt32.self, UInt64.self, Float.self,
-    Double.self, Bool.self, URL.self, Data.self, Decimal.self, UUID.self,
+    String.self, UInt.self, UInt8.self, UInt16.self, UInt32.self, UInt64.self, Float.self, Bool.self
 ]
 
-func generateRandomValue<T: Codable & Equatable>(fdp: FuzzedDataProvider) -> T {
-    if T.self == String.self {
-        return fdp.ConsumeRemainingString() as! T
-    }
-    else if T.self == Int.self {
-        return fdp.ConsumeIntegral<Int> as! Int
+func test_fuzz_type<T: Codable & Equatable>(_ ft: FuzzType<T>) throws {
+    let encoded = try encoder.encode(ft)
+    let decoded = try decoder.decode(FuzzType<T>.self, from: encoded)
+    
+    if (ft != decoded) {
+        fatalError("Encoded != original")
     }
 }
 
 @_cdecl("LLVMFuzzerTestOneInput")
 public func test(_ start: UnsafeRawPointer, _ count: Int) -> CInt {
     let fdp = FuzzedDataProvider(start, count)
+    
     do {
         let ty = fdp.PickValueInList(from: encodable_types)
-        let original = FuzzType(value: fdp.ConsumeRemainingString())
-        let data = try encoder.encode(original)
-        let decoded = try decoder.decode(FuzzType<String>.self, from: data)
+        
+        if ty.self == String.self {
+            try test_fuzz_type(FuzzType(value: fdp.ConsumeRemainingString()))
+        } else if ty.self == UInt.self {
+            let val: UInt = fdp.ConsumeIntegral()
+            let original = FuzzType(value: val)
+            try test_fuzz_type(original)
+        } else if ty.self == UInt8.self {
+            let val: UInt8 = fdp.ConsumeIntegral()
+            let original = FuzzType(value: val)
+            try test_fuzz_type(original)
+        } else if ty.self == UInt16.self {
+            let val: UInt16 = fdp.ConsumeIntegral()
+            let original = FuzzType(value: val)
+            try test_fuzz_type(original)
+        } else if ty.self == UInt32.self {
+            let val: UInt32 = fdp.ConsumeIntegral()
+            let original = FuzzType(value: val)
+            try test_fuzz_type(original)
+        } else if ty.self == UInt64.self {
+            let val: UInt64 = fdp.ConsumeIntegral()
+            let original = FuzzType(value: val)
+            try test_fuzz_type(original)
+        } else if ty.self == Bool.self {
+            try test_fuzz_type(FuzzType(value: fdp.ConsumeBoolean()))
+        }
     }
     catch _ as JSONParserError {
         return -1
