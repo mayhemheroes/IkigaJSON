@@ -16,7 +16,7 @@ struct FuzzType<Value: Codable & Equatable>: Codable, Equatable {
     let value: Value
 }
 
-let encodable_types: [(Codable & Equatable).Type] = [
+let encodable_types: [Codable.Type] = [
     String.self, UInt.self, UInt8.self, UInt16.self, UInt32.self, UInt64.self, Float.self, Bool.self
 ]
 
@@ -29,10 +29,6 @@ func test_fuzz_type<T: Codable & Equatable>(_ ft: FuzzType<T>) throws {
     if (ft != decoded) {
         fatalError("Encoded != original")
     }
-}
-
-func decode_type<T: Codable & Equatable>(_ fdp: FuzzedDataProvider, ty: T) throws {
-    try decoder.decode(FuzzType<T>.self, from: fdp.ConsumeRemainingString())
 }
 
 @_cdecl("LLVMFuzzerTestOneInput")
@@ -71,7 +67,10 @@ public func test(_ start: UnsafeRawPointer, _ count: Int) -> CInt {
             }
         } else {
             // Test raw decoding
-            decode_type(fdp, ty: fdp.PickValueInList(from: decodable_types))
+            let ty = fdp.PickValueInList(from: decodable_types)
+            if let casted_ty = ty as? Decodable.Type {
+                try decoder.decode(casted_ty, from: fdp.ConsumeRemainingString())
+            }
         }
     }
     catch _ as JSONParserError {
