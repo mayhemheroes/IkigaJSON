@@ -14,6 +14,10 @@ let package = Package(
         .library(
             name: "IkigaJSON",
             targets: ["IkigaJSON"]),
+        .executable(
+            name: "IkigaJSONFuzzer",
+            targets: ["IkigaJSONFuzzer"]
+        )
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -28,5 +32,18 @@ let package = Package(
         .testTarget(
             name: "IkigaJSONTests",
             dependencies: [.target(name: "IkigaJSON")]),
+        .target(
+            name: "IkigaJSONFuzzer",
+            dependencies: [.target(name: "IkigaJSON")],
+            path: "mayhem",
+            sources: ["FuzzedDataProvider.swift", "main.swift"],
+            swiftSettings: [
+              .unsafeFlags(["-sanitize=fuzzer,address"]),
+              .unsafeFlags(["-parse-as-library"])
+            ],
+            linkerSettings: [
+              .unsafeFlags(["-sanitize=fuzzer,address"])
+            ]
+        )
     ]
 )
