@@ -1,0 +1,8 @@
+project: IkigaJSON
+target: fuzz-IkigaJSON
+testsuite:
+    - file://mayhem/testsuite
+
+cmds:
+  - cmd: /release/IkigaJSONFuzzer
+    libfuzzer: true
